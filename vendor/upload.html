@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Upload Product</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body{
+min-height:100vh;
+background:linear-gradient(135deg,#f8fafc,#eef2f7);
+display:flex;
+justify-content:center;
+align-items:center;
+padding:30px;
+}
+form{
+width:100%;
+max-width:550px;
+background:rgba(255,255,255,0.85);
+backdrop-filter:blur(16px);
+border:1px solid rgba(0,0,0,0.06);
+border-radius:25px;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+padding:35px;
+}
+form h3{
+color:#1f2937;
+font-size:32px;
+font-weight:700;
+text-align:center;
+margin-bottom:25px;
+}
+.form-control{
+background:#f9fafb!important;
+border:1px solid #e5e7eb!important;
+color:#111!important;
+border-radius:14px!important;
+padding:12px!important;
+}
+.form-control::placeholder{
+color:#9ca3af;
+}
+.form-control:focus{
+border:1px solid #7f5af0!important;
+box-shadow:none!important;
+}
+textarea{
+resize:none;
+height:120px;
+}
+.upload-btn{
+width:100%;
+border:none;
+border-radius:999px;
+padding:14px;
+font-size:16px;
+font-weight:600;
+background:linear-gradient(135deg,#7f5af0,#2cb67d);
+color:white;
+transition:0.3s ease;
+}
+.upload-btn:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 20px rgba(127,90,240,0.25);
+}
+</style>
+</head>
+<body>
+<form onsubmit="uploadProduct();return false">
+<h3>Upload Product</h3>
+<input required class="form-control mt-3" type="text" id="pname" placeholder="Enter Product Name">
+<input required min="1" class="form-control mt-3" type="number" id="pprice" placeholder="Enter Product Price">
+<textarea required class="form-control mt-3" id="pdetail" placeholder="Enter Product Description"></textarea>
+<select class="form-control mt-3" id="pcategory">
+<option value="Electronics">Electronics</option>
+<option value="Gadgets">Gadgets</option>
+<option value="Furniture">Furniture</option>
+<option value="Home Appliance">Home Appliance</option>
+<option value="Mobile">Mobile</option>
+<option value="Others">Others</option>
+</select>
+<div class="mt-4">
+<button class="upload-btn" type="submit">Upload Product</button>
+</div>
+</form>
+<script>
+const token=sessionStorage.getItem("token")
+if(!token){
+alert("Please Login First")
+window.location.href="../auth/login.html"
+}
+async function uploadProduct(){
+try{
+const name=document.getElementById("pname").value
+const price=document.getElementById("pprice").value
+const detail=document.getElementById("pdetail").value
+const category=document.getElementById("pcategory").value
+const payload={name,price,detail,category}
+console.log(payload)
+const response=await fetch("http://localhost:3000/product/add",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"authorization":"Bearer "+token
+},
+body:JSON.stringify(payload)
+})
+const data=await response.json()
+console.log("UPLOAD RESPONSE:",data)
+if(data.error){
+alert(data.message)
+return
+}
+alert("Product Added Successfully")
+document.getElementById("pname").value=""
+document.getElementById("pprice").value=""
+document.getElementById("pdetail").value=""
+document.getElementById("pcategory").value="Electronics"
+}
+catch(err){
+console.log("UPLOAD ERROR:",err)
+alert("Something Went Wrong")
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>My Cart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins', sans-serif;
+}
+body{
+min-height:100vh;
+background:linear-gradient(135deg,#f5f7fa,#e4efe9);
+background-attachment:fixed;
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+}
+.header{
+width:100%;
+padding:20px 50px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:rgba(255,255,255,0.85);
+backdrop-filter:blur(14px);
+border-bottom:1px solid rgba(0,0,0,0.05);
+position:sticky;
+top:0;
+z-index:1000;
+}
+.header h2{
+font-size:38px;
+font-weight:700;
+color:#222;
+}
+.back-btn{
+border:none;
+outline:none;
+padding:12px 24px;
+border-radius:999px;
+background:linear-gradient(135deg,#7f5af0,#2cb67d);
+color:white;
+font-size:15px;
+font-weight:600;
+cursor:pointer;
+transition:0.3s ease;
+}
+.back-btn:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 20px rgba(127,90,240,0.3);
+}
+#tbody{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:30px;
+padding:45px;
+}
+.cart-card{
+background:white;
+border-radius:25px;
+padding:28px;
+transition:0.35s ease;
+box-shadow:0 8px 20px rgba(0,0,0,0.08);
+border:1px solid #eee;
+}
+.cart-card:hover{
+transform:translateY(-6px);
+box-shadow:0 16px 30px rgba(0,0,0,0.12);
+}
+.product-name{
+font-size:26px;
+font-weight:700;
+color:#222;
+}
+.product-price{
+font-size:28px;
+font-weight:700;
+color:#2cb67d;
+margin-top:12px;
+}
+.remove-btn{
+width:100%;
+margin-top:20px;
+border:none;
+padding:12px;
+border-radius:999px;
+background:linear-gradient(135deg,#7f5af0,#2cb67d);
+color:white;
+font-size:15px;
+font-weight:600;
+cursor:pointer;
+transition:0.3s ease;
+}
+.remove-btn:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 20px rgba(30,144,255,0.35);
+}
+.empty{
+color:#777;
+font-size:26px;
+text-align:center;
+grid-column:1/-1;
+margin-top:80px;
+}
+@media(max-width:768px){
+.header{
+flex-direction:column;
+gap:18px;
+padding:20px;
+text-align:center;
+}
+.header h2{
+font-size:30px;
+}
+#tbody{
+padding:20px;
+}
+}
+</style>
+</head>
+<body>
+<div class="header">
+<h2>My Cart</h2>
+<button class="back-btn" onclick="window.location.href='home.html'">
+Back
+</button>
+</div>
+<div id="tbody"></div>
+<script>
+const token=sessionStorage.getItem("token")
+if(!token){
+window.location.href="../auth/login.html"
+}
+const tbody=document.getElementById("tbody")
+async function loadCart(){
+try{
+const res=await fetch("http://localhost:3000/cart/view",{
+headers:{
+"authorization":"Bearer "+token
+}
+})
+const data=await res.json()
+tbody.innerHTML=""
+if(!data.data||data.data.length===0){
+tbody.innerHTML=`<div class="empty">Cart is Empty</div>`
+return
+}
+data.data.forEach(item=>{
+tbody.innerHTML+=`
+<div class="cart-card">
+<div class="product-name">${item.name}</div>
+<div class="product-price">₹ ${item.price}</div>
+<button class="remove-btn" onclick="removeCart(${item.pid})">
+Remove
+</button>
+</div>
+`
+})
+}
+catch(err){
+console.log(err)
+alert("Cart Load Failed")
+}
+}
+async function removeCart(pid){
+try{
+const res=await fetch(`http://localhost:3000/cart/remove/${pid}`,{
+method:"DELETE",
+headers:{
+"authorization":"Bearer "+token
+}
+})
+const data=await res.json()
+alert(data.message)
+loadCart()
+}
+catch(err){
+console.log(err)
+alert("Remove Failed")
+}
+}
+loadCart()
+</script>
+</body>
+</html>

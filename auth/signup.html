@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Signup</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins', sans-serif;
+}
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:30px;
+    overflow:hidden;
+    background:
+    linear-gradient(rgba(15,15,15,0.55), rgba(15,15,15,0.55)),
+    url("https://images.unsplash.com/photo-1521334884684-d80222895322?q=80&w=1400&auto=format&fit=crop");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+}
+.form-box{
+    width:450px;
+    padding:40px;
+    border-radius:35px;
+    background:rgba(255,255,255,0.13);
+    backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,0.18);
+    box-shadow:0 12px 40px rgba(0,0,0,0.28);
+}
+.heading{
+    text-align:center;
+    color:white;
+    font-size:40px;
+    font-weight:700;
+    margin-bottom:28px;
+    letter-spacing:1px;
+}
+.form-control{
+    margin-top:16px;
+    padding:15px;
+    border:none;
+    border-radius:18px;
+    background:rgba(255,255,255,0.18);
+    color:white;
+    font-size:15px;
+}
+.form-control::placeholder{
+    color:#f3f3f3;
+}
+.form-control:focus{
+    box-shadow:none;
+    background:rgba(255,255,255,0.28);
+    color:white;
+}
+select.form-control{
+    color:white;
+}
+select option{
+    color:black;
+}
+.btn-custom{
+    width:100%;
+    padding:14px;
+    margin-top:12px;
+    border:none;
+    border-radius:999px;
+    background:linear-gradient(135deg,#7f5af0,#2cb67d);
+    color:white;
+    font-size:16px;
+    font-weight:600;
+    transition:0.3s;
+}
+.btn-custom:hover{
+    transform:translateY(-3px) scale(1.02);
+    background:linear-gradient(135deg,#6c47e6,#239b69);
+}
+.link{
+    color:#d4ffef;
+    text-decoration:none;
+    font-weight:600;
+}
+.link:hover{
+    color:white;
+}
+p{
+    color:white;
+}
+</style>
+</head>
+<body>
+<form class="form-box" onsubmit="signupUser(); return false">
+    <h2 class="heading">Create Account</h2>
+    <input required type="text" id="uname"
+    class="form-control"
+    placeholder="Enter Name">
+    <input required type="email" id="uemail"
+    class="form-control"
+    placeholder="Enter Email">
+    <input required type="text" id="uphone"
+    class="form-control"
+    placeholder="Enter Phone">
+    <input required type="password" id="upassword"
+    class="form-control"
+    placeholder="Enter Password">
+    <select required id="urole"
+    class="form-control">
+        <option value="">Select Role</option>
+        <option value="customer">Customer</option>
+        <option value="vendor">Vendor</option>
+    </select>
+    <div class="text-center mt-4">
+        <button type="submit" class="btn btn-custom">
+            Signup
+        </button>
+    </div>
+    <p class="text-center mt-4">
+        Already have account?
+        <a href="login.html" class="link">
+            Login
+        </a>
+    </p>
+</form>
+<script>
+async function signupUser()
+{
+    try
+    {
+        const payload =
+        {
+            username: document.getElementById("uname").value,
+            email: document.getElementById("uemail").value,
+            phone: document.getElementById("uphone").value,
+            password: document.getElementById("upassword").value,
+            role: document.getElementById("urole").value
+        }
+        const response = await fetch(
+            "http://localhost:3000/auth/signup",
+            {
+                method:"POST",
+
+                headers:
+                {
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify(payload)
+            }
+        )
+        const data = await response.json()
+        alert(data.message)
+        if(!data.error)
+        {
+            window.location.href = "login.html"
+        }
+    }
+    catch(error)
+    {
+        console.log(error)
+        alert("Signup Failed")
+    }
+}
+</script>
+</body>
+</html>

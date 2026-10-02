@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>My Orders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+body{
+min-height:100vh;
+background:linear-gradient(135deg,#f5f7fa,#e4efe9);
+background-attachment:fixed;
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+}
+.header{
+width:100%;
+padding:20px 50px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:rgba(255,255,255,0.85);
+backdrop-filter:blur(14px);
+border-bottom:1px solid rgba(0,0,0,0.05);
+position:sticky;
+top:0;
+z-index:1000;
+}
+.header h2{
+font-size:38px;
+font-weight:700;
+color:#222;
+}
+.back-btn{
+border:none;
+outline:none;
+padding:12px 24px;
+border-radius:999px;
+background:linear-gradient(135deg,#7f5af0,#2cb67d);
+color:white;
+font-size:15px;
+font-weight:600;
+cursor:pointer;
+transition:0.3s ease;
+}
+.back-btn:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 20px rgba(127,90,240,0.3);
+}
+.container{
+padding:45px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+gap:30px;
+}
+.card{
+background:white;
+border-radius:25px;
+padding:28px;
+transition:0.35s ease;
+box-shadow:0 8px 20px rgba(0,0,0,0.08);
+border:1px solid #eee;
+}
+.card:hover{
+transform:translateY(-6px);
+box-shadow:0 16px 30px rgba(0,0,0,0.12);
+}
+.card h3{
+font-size:26px;
+font-weight:700;
+color:#222;
+margin-bottom:14px;
+}
+.amount{
+color:#2cb67d;
+font-size:20px;
+font-weight:700;
+margin-top:10px;
+}
+.payment{
+color:#f59e0b;
+font-size:16px;
+font-weight:500;
+margin-top:10px;
+}
+.empty{
+color:#777;
+font-size:26px;
+text-align:center;
+grid-column:1/-1;
+margin-top:70px;
+}
+@media(max-width:768px){
+.header{
+flex-direction:column;
+gap:18px;
+padding:20px;
+text-align:center;
+}
+.header h2{
+font-size:30px;
+}
+.container{
+padding:20px;
+}
+}
+</style>
+</head>
+<body>
+<div class="header">
+<h2>My Orders</h2>
+<button class="back-btn" onclick="window.location.href='home.html'">Back</button>
+</div>
+<div class="container" id="parent"></div>
+<script>
+const token=sessionStorage.getItem("token");
+if(!token){
+window.location.href="../auth/login.html";
+}
+const parent=document.getElementById("parent");
+async function loadOrders(){
+try{
+const res=await fetch("http://localhost:3000/order",{
+headers:{
+"authorization":"Bearer "+token
+}
+});
+const data=await res.json();
+parent.innerHTML="";
+if(!data.data||data.data.length===0){
+parent.innerHTML="<div class='empty'>No Orders Found</div>";
+return;
+}
+data.data.forEach(order=>{
+parent.innerHTML+=`
+<div class="card">
+<h3>${order.name}</h3>
+<p class="amount">Amount : ₹ ${order.amount}</p>
+<p class="payment">Payment : ${order.payment_method}</p>
+</div>`;
+});
+}
+catch(err){
+console.log(err);
+alert("Order Load Failed");
+}
+}
+loadOrders();
+</script>
+</body>
+</html>

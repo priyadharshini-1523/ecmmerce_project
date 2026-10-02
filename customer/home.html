@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Customer Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins', sans-serif;
+}
+body{
+    min-height:100vh;
+    background:linear-gradient(135deg,#f5f7fa,#e4efe9);
+    background-attachment:fixed;
+}
+.header{
+    width:100%;
+    padding:20px 50px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:20px;
+    background:rgba(255,255,255,0.8);
+    backdrop-filter:blur(14px);
+    position:sticky;
+    top:0;
+    z-index:1000;
+}
+.header h2{
+    font-size:38px;
+    color:#222;
+}
+#search{
+    width:320px;
+    padding:12px 18px;
+    border:none;
+    outline:none;
+    border-radius:999px;
+    background:white;
+    box-shadow:0 4px 10px rgba(0,0,0,0.08);
+    font-size:15px;
+}
+.header div{
+    display:flex;
+    gap:15px;
+}
+.header button{
+    border:none;
+    padding:12px 24px;
+    border-radius:999px;
+    background:linear-gradient(135deg,#7f5af0,#2cb67d);
+    color:white;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
+}
+.header button:hover{
+    transform:translateY(-3px);
+}
+#parent{
+    padding:45px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:35px;
+}
+.product-card{
+    background:white;
+    padding:28px;
+    border-radius:25px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.08);
+    transition:0.3s;
+}
+.product-card:hover{
+    transform:translateY(-6px);
+}
+.product-name{
+    font-size:26px;
+    font-weight:700;
+    color:#222;
+}
+.product-price{
+    font-size:28px;
+    font-weight:700;
+    color:#2cb67d;
+    margin-top:12px;
+}
+.product-card button{
+    width:100%;
+    border:none;
+    padding:13px;
+    border-radius:14px;
+    margin-top:15px;
+    cursor:pointer;
+    font-size:15px;
+    font-weight:600;
+    transition:0.3s;
+}
+.cart-btn{
+    background:#f1f3f5;
+}
+.buy-btn{
+    background:linear-gradient(135deg,#7f5af0,#2cb67d);
+    color:white;
+}
+.buy-btn:hover{
+    transform:translateY(-3px);
+}
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:2000;
+}
+.modal-box{
+    width:400px;
+    background:white;
+    padding:30px;
+    border-radius:25px;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+.modal-box h2{
+    text-align:center;
+    color:#222;
+}
+.modal-box input,
+.modal-box textarea,
+.modal-box select{
+    width:100%;
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:12px;
+    font-size:15px;
+}
+.modal-box textarea{
+    height:100px;
+    resize:none;
+}
+.modal-box button{
+    border:none;
+    padding:14px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:15px;
+    font-weight:600;
+}
+.confirm-btn,
+.cancel-btn{
+    background:linear-gradient(135deg,#7f5af0,#2cb67d);
+    color:white;
+}
+.empty{
+    text-align:center;
+    color:#666;
+    font-size:28px;
+    grid-column:1/-1;
+}
+@media(max-width:768px){
+    .header{
+        flex-direction:column;
+        gap:18px;
+        padding:20px;
+    }
+
+    .header h2{
+        font-size:30px;
+    }
+
+    #parent{
+        padding:20px;
+    }
+
+    .modal-box{
+        width:90%;
+    }
+
+    #search{
+        width:100%;
+    }
+}
+</style>
+</head>
+<body>
+<div class="header">
+    <h2>Welcome Customer</h2>
+    <input type="text" id="search" placeholder="Search Products..." onkeyup="searchProducts()">
+    <div>
+        <button onclick="viewCart()">Cart</button>
+        <button onclick="viewOrders()">Orders</button>
+        <button onclick="logout()">Logout</button>
+    </div>
+</div>
+<div id="parent"></div>
+<div id="orderModal" class="modal">
+    <div class="modal-box">
+        <h2>Place Order</h2>
+        <label>Quantity</label>
+        <input type="number" id="qty" value="1" min="1">
+        <label>Delivery Address</label>
+        <textarea id="address"></textarea>
+        <label>Payment Method</label>
+        <select id="payment">
+            <option>Cash On Delivery</option>
+            <option>UPI</option>
+        </select>
+        <button class="confirm-btn" onclick="confirmOrder()">Confirm Order</button>
+        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+<script>
+const token = sessionStorage.getItem("token")
+if(!token){
+    window.location.href = "../auth/login.html"
+}
+const parentRef = document.getElementById("parent")
+let selectedPid = null
+let selectedPrice = null
+let allProducts = []
+async function getProducts(){
+    const res = await fetch("http://localhost:3000/product",{
+        headers:{
+            "authorization":"Bearer " + token
+        }
+    })
+    const data = await res.json()
+    allProducts = data.data
+    displayProducts(allProducts)
+}
+function displayProducts(products){
+    parentRef.innerHTML = ""
+    if(!products.length){
+        parentRef.innerHTML = `<div class="empty">No Products Found</div>`
+        return
+    }
+    products.forEach(product=>{
+        parentRef.innerHTML += `
+        <div class="product-card">
+
+            <div class="product-name">${product.name}</div>
+
+            <div class="product-price">₹ ${product.price}</div>
+
+            <button class="cart-btn" onclick="addCart(${product.pid})">Add To Cart</button>
+
+            <button class="buy-btn" onclick="buyProduct(${product.pid}, ${product.price})">Buy Now</button>
+
+        </div>`
+    })
+}
+function searchProducts(){
+    const search = document.getElementById("search").value.toLowerCase()
+    const filtered = allProducts.filter(p =>
+        p.name.toLowerCase().includes(search)
+    )
+    displayProducts(filtered)
+}
+async function addCart(pid){
+    const res = await fetch(`http://localhost:3000/cart/add/${pid}`,{
+        headers:{
+            "authorization":"Bearer " + token
+        }
+    })
+    const data = await res.json()
+    alert(data.message)
+}
+function buyProduct(pid, price){
+    selectedPid = pid
+    selectedPrice = price
+    document.getElementById("orderModal").style.display = "flex"
+}
+function closeModal(){
+    document.getElementById("orderModal").style.display = "none"
+}
+async function confirmOrder(){
+    const quantity = document.getElementById("qty").value
+    const address = document.getElementById("address").value
+    const payment = document.getElementById("payment").value
+    if(!address){
+        alert("Enter Address")
+        return
+    }
+    const total = quantity * selectedPrice
+    const res = await fetch("http://localhost:3000/order/buy",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json",
+            "authorization":"Bearer " + token
+        },
+        body:JSON.stringify({
+            pid:selectedPid,
+            amount:total,
+            quantity,
+            address,
+            payment_method:payment
+        })
+    })
+    const data = await res.json()
+    alert(data.message)
+    if(!data.error){
+        closeModal()
+    }
+}
+function viewCart(){
+    window.location.href = "viewcart.html"
+}
+function viewOrders(){
+    window.location.href = "vieworder.html"
+}
+function logout(){
+    sessionStorage.clear()
+    window.location.href = "../auth/login.html"
+}
+getProducts()
+</script>
+</body>
+</html>

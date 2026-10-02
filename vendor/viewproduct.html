@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+#parent{
+display:flex;
+gap:20px;
+padding:10px;
+flex-wrap:wrap;
+}
+.product-card{
+background-color:maroon;
+color:white;
+width:300px;
+padding:10px;
+border-radius:10px;
+}
+.product-name{
+font-size:24px;
+font-weight:bold;
+color:yellow;
+}
+.product-price{
+font-size:22px;
+color:goldenrod;
+}
+.product-detail{
+font-style:italic;
+margin-top:10px;
+}
+.product-category{
+margin-top:10px;
+}
+.action{
+display:flex;
+justify-content:center;
+gap:10px;
+margin-top:15px;
+}
+button{
+border:none;
+padding:6px 12px;
+border-radius:5px;
+}
+</style>
+</head>
+<body>
+<div id="parent"></div>
+<script>
+let parentRef=document.getElementById("parent")
+const token=sessionStorage.getItem("token")
+if(!token){
+alert("Please login first")
+window.location.href="login.html"
+}
+async function getProduct(){
+try{
+const rawResponse=await fetch("http://localhost:3000/product",{
+method:"GET",
+headers:{
+"Content-Type":"application/json",
+"authorization":"Bearer "+token
+}
+})
+const apiResponse=await rawResponse.json()
+console.log(apiResponse)
+if(apiResponse.error){
+alert(apiResponse.message)
+return
+}
+parentRef.innerHTML=""
+apiResponse.data.forEach(product=>{
+parentRef.innerHTML+=`
+<div class="product-card">
+<div class="product-name">${product.name}</div>
+<div class="product-price">Rs ${product.price}</div>
+<div class="product-detail">${product.detail}</div>
+<div class="product-category">${product.category}</div>
+<div class="action">
+<button>Edit</button>
+<button onclick="deleteproduct(${product.pid})">Delete</button>
+</div>
+</div>
+`
+})
+}
+catch(error){
+console.log(error)
+alert("Something went wrong")
+}
+}
+async function deleteproduct(pid){
+const confirmDelete=confirm("Are you sure want to delete?")
+if(!confirmDelete)return
+try{
+const rawResponse=await fetch(`http://localhost:3000/product/${pid}`,{
+method:"DELETE",
+headers:{
+"authorization":"Bearer "+token
+}
+})
+const apiResponse=await rawResponse.json()
+alert(apiResponse.message)
+if(!apiResponse.error){
+getProduct()
+}
+}
+catch(error){
+console.log(error)
+alert("Delete failed")
+}
+}
+getProduct()
+</script>
+</body>
+</html>
